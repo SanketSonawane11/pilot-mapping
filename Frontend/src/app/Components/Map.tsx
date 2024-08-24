@@ -1,82 +1,133 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Tooltip } from "react-leaflet";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import axios from "axios";
-import { LatLngExpression } from "leaflet";
 
 interface Pilot {
   _id: string;
   name: string;
-  experience: number;
+  workEx: number;
   location: string;
   profileImage: string;
-  geoCoordinates: [number, number];
+  coordinates: [number, number];
 }
 
-const Map: React.FC = () => {
+const MapComponent: React.FC = () => {
   const [pilots, setPilots] = useState<Pilot[]>([]);
-  const [adminLocation, setAdminLocation] = useState<LatLngExpression | null>(
+  const [adminLocation, setAdminLocation] = useState<[number, number] | null>(
     null
   );
+  const fallbackLocation: [number, number] = [72.86333, 19.090653];
 
   useEffect(() => {
-    // Fetching all pilots data
+    // Fetching All Pilots data
     const getAllPilots = async () => {
       try {
         const response = await axios.get<Pilot[]>(
           "https://pilot-mapping.onrender.com/api/v1/get-pilots"
         );
-        // Ensure data is an array
-        const arrayData = Array.isArray(response.data)
-          ? response.data
-          : [response.data];
-        console.log("Converted array data: ", arrayData);
-        setPilots(arrayData);
-        console.log("Final polit data: ", pilots);
+        // console.log(response.data);
+        setPilots(response.data);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching pilots:", err);
       }
     };
 
     getAllPilots();
 
-    // Getting Current location
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setAdminLocation([position.coords.latitude, position.coords.longitude]);
-        console.log("Admin location: ", adminLocation);
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        setAdminLocation([51.505, -0.09]);
-        console.log("Fallback Admin Location: ", adminLocation);
-      }
-    );
+    // Get user's location
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location: [number, number] = [
+            position.coords.longitude,
+            position.coords.latitude,
+          ];
+          setAdminLocation(location);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setAdminLocation(fallbackLocation);
+        }
+      );
+    }
   }, []);
 
-  // Default center if adminLocation is not set
-  const mapCenter: LatLngExpression = adminLocation || [51.505, -0.09];
+  useEffect(() => {
+    mapboxgl.accessToken =
+      "pk.eyJ1Ijoic2Fua2V0c29uYXdhbmUxMSIsImEiOiJjbTA3dnpoNnExN3Z0MmtyMHZvNXluNmtzIn0.DEv8xp6y4guWgopqvzJP2A";
+    const map = new mapboxgl.Map({
+      container: "map",
+      style: "mapbox://styles/mapbox/streets-v11",
+      center: adminLocation || fallbackLocation,
+      zoom: 9,
+    });
 
-  return (
-    <MapContainer
-      center={mapCenter}
-      zoom={13}
-      style={{ height: "100vh", width: "100%" }}
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      {adminLocation && (
-        <Marker position={adminLocation}>
-          <Tooltip>Admin's Location</Tooltip>
-        </Marker>
-      )}
-      {pilots.map((pilot, id) => (
-        <Marker key={id} position={pilot.geoCoordinates}>
-          <Tooltip>{pilot.name}</Tooltip>
-        </Marker>
-      ))}
-    </MapContainer>
-  );
+    map.on("load", () => {
+      // User location
+      const adminPopupContent = document.createElement("div");
+      adminPopupContent.className = "popup-content p-2";
+
+      // User
+      const adminTitle = document.createElement("h3");
+      adminTitle.textContent = "Ypur Location";
+      adminTitle.className = "font-bold text-lg mb-1 text-blue-900";
+      adminPopupContent.appendChild(adminTitle);
+
+      new mapboxgl.Marker({
+        color: "#FF0000",
+      })
+        .setLngLat(adminLocation || fallbackLocation)
+        .setPopup(new mapboxgl.Popup().setDOMContent(adminPopupContent))
+        .addTo(map);
+
+      // Pilot Markers
+      pilots.forEach((pilot) => {
+        const ele = document.createElement("div");
+        ele.className = "marker bg-blue-400 w-3 h-2 rounded-full";
+
+        const popupContent = document.createElement("div");
+        popupContent.className = "popup-content p-2 bg-blue-200 rounded-lg";
+
+        // ProfileImage
+        const image = document.createElement("img");
+        image.src = pilot.profileImage;
+        image.alt = `${pilot.name}'s profile picture`;
+        image.className = "w-16 h-16 rounded-full mb-2";
+
+        // Name
+        const name = document.createElement("h3");
+        name.textContent = pilot.name;
+        name.className = "font-bold text-lg text-black mb-1";
+
+        // Location
+        const location = document.createElement("p");
+        location.textContent = `Location: ${pilot.location}`;
+        location.className = "text-sm mb-1 text-[#272727]";
+
+        // WorkEx
+        const experience = document.createElement("p");
+        experience.textContent = `Experience: ${pilot.workEx} years`;
+        experience.className = "text-sm text-[#1a1a1a]";
+
+        popupContent.appendChild(image);
+        popupContent.appendChild(name);
+        popupContent.appendChild(location);
+        popupContent.appendChild(experience);
+
+        new mapboxgl.Marker(ele)
+          .setLngLat(pilot.coordinates)
+          .setPopup(new mapboxgl.Popup().setDOMContent(popupContent))
+          .addTo(map);
+      });
+    });
+
+    return () => map.remove();
+  }, [adminLocation, pilots]);
+
+  return <div id="map" className="h-screen w-full" />;
 };
 
-export default Map;
+export default MapComponent;

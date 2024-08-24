@@ -1,5 +1,7 @@
 import React from "react";
-import Map from "./Components/Map";
+import dynamic from "next/dynamic";
+
+const Map = dynamic(() => import("./Components/Map"), { ssr: false });
 
 function page() {
   return (
