@@ -15,6 +15,8 @@ interface Pilot {
 }
 
 const MapComponent: React.FC = () => {
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_KEY;
+  // console.log(mapboxToken);
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [adminLocation, setAdminLocation] = useState<[number, number] | null>(
     null
@@ -56,8 +58,7 @@ const MapComponent: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    mapboxgl.accessToken =
-      "pk.eyJ1Ijoic2Fua2V0c29uYXdhbmUxMSIsImEiOiJjbTA3dnpoNnExN3Z0MmtyMHZvNXluNmtzIn0.DEv8xp6y4guWgopqvzJP2A";
+    mapboxgl.accessToken = mapboxToken || "";
     const map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/streets-v11",
