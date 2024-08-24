@@ -19,7 +19,7 @@ router.post('/get-matches', async (req, res) => {
     if (matchedPilots.length === 0) {
         return res.status(400).json({ message: "No pilots found" });
     }
-    return res.status(200).json({ data: matchedPilots });
+    return res.status(200).json(matchedPilots);
 });
 
 module.exports = router;
