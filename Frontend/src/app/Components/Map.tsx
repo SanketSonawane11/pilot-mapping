@@ -73,7 +73,7 @@ const MapComponent: React.FC = () => {
 
       // User
       const adminTitle = document.createElement("h3");
-      adminTitle.textContent = "Ypur Location";
+      adminTitle.textContent = "Your Location";
       adminTitle.className = "font-bold text-lg mb-1 text-blue-900";
       adminPopupContent.appendChild(adminTitle);
 
@@ -87,7 +87,7 @@ const MapComponent: React.FC = () => {
       // Pilot Markers
       pilots.forEach((pilot) => {
         const ele = document.createElement("div");
-        ele.className = "marker bg-blue-400 w-3 h-2 rounded-full";
+        ele.className = "marker bg-blue-400 w-3 h-3 rounded-full";
 
         const popupContent = document.createElement("div");
         popupContent.className = "popup-content p-2 bg-blue-200 rounded-lg";
