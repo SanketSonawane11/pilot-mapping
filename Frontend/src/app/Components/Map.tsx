@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import axios from "axios";
+import SearchPilots from "./Search-pilots";
 
 interface Pilot {
   _id: string;
@@ -128,7 +129,12 @@ const MapComponent: React.FC = () => {
     return () => map.remove();
   }, [adminLocation, pilots]);
 
-  return <div id="map" className="h-screen w-full" />;
+  return (
+    <div>
+      <div id="map" className="h-screen w-full" />
+      <SearchPilots />
+    </div>
+  );
 };
 
 export default MapComponent;
