@@ -6,7 +6,7 @@ const router = Router();
 router.get('/get-pilots', async (req, res) => {
     try {
         const allPilots = await Pilot.find({}).exec();
-        return res.status(200).json({ data: allPilots });
+        return res.status(200).json(allPilots);
     }
     catch (err) {
         console.log(err);
