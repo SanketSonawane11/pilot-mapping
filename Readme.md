@@ -20,4 +20,4 @@ Map Service: MapBox
 
 ## Video Demo
 
-![Video](https://drive.google.com/file/d/1aNKXQFk0PS5VkIq5gyhEFVsJeN1tGNch/view?usp=sharing)
+[Watch Video Demo](https://drive.google.com/file/d/1aNKXQFk0PS5VkIq5gyhEFVsJeN1tGNch/view?usp=sharing)
