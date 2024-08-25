@@ -3,6 +3,9 @@
 import { useState, ChangeEvent, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import BlobLoader from "./Loader";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Pilot {
   _id: string;
@@ -19,7 +22,7 @@ interface SearchPilotProps {
 
 export default function SearchPilots({ setPilots }: SearchPilotProps) {
   const [isFormVisible, setIsFormVisible] = useState(false);
-  // const [matchedPilots, setMatchedPilots] = useState<Pilot[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [longitude, setLongitude] = useState<number | undefined>();
   const [latitude, setLatitude] = useState<number | undefined>();
   const [experience, setExperience] = useState<number | undefined>();
@@ -33,17 +36,31 @@ export default function SearchPilots({ setPilots }: SearchPilotProps) {
   };
 
   useEffect(() => {
-    if (latitude === undefined && longitude === undefined) {
+    if (latitude === undefined || longitude === undefined) {
       setSubmitButtonText("Get Current Location");
     } else {
       setSubmitButtonText("Submit");
     }
   }, [longitude, latitude]);
 
+  const getLocationAndSearchPilots = async () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLongitude(position.coords.longitude);
+        setLatitude(position.coords.latitude);
+        setSubmitButtonText("Submit");
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        toast.error("Cannot get your location. Try again or enter manually.");
+      }
+    );
+  };
+
   const searchPilots = async () => {
+    setIsLoading(true);
     try {
       if (latitude !== undefined && longitude !== undefined) {
-        // console.log(longitude, latitude, range, experience);
         const response = await axios.post(
           "https://pilot-mapping.onrender.com/api/v1/get-matches",
           {
@@ -53,28 +70,23 @@ export default function SearchPilots({ setPilots }: SearchPilotProps) {
             range,
           }
         );
+
         setLatitude(undefined);
         setLongitude(undefined);
         setExperience(undefined);
         setRange(undefined);
         setIsFormVisible(false);
-        console.log(response.data);
         setPilots(response.data);
+        toast.success(`Found ${response.data.length} matches`);
       } else {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setLongitude(position.coords.longitude);
-            setLatitude(position.coords.latitude);
-            setSubmitButtonText("Submit");
-            searchPilots();
-          },
-          (error) => {
-            console.error("Error getting location:", error);
-          }
-        );
+        await getLocationAndSearchPilots();
       }
-    } catch (err) {
-      console.log("Error fetching: ", err);
+    } catch (err: any) {
+      toast.error(
+        err.response?.data?.message || "An error occurred while searching."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -175,20 +187,25 @@ export default function SearchPilots({ setPilots }: SearchPilotProps) {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <button
-                    type="button"
-                    onClick={searchPilots}
-                    className="px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition duration-300 shadow-lg"
-                  >
-                    {submitButtonText}
-                  </button>
+                  {isLoading ? (
+                    <BlobLoader />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={searchPilots}
+                      className="min-w-[48%] py-3 px-5 bg-gradient-to-r from-blue-500 to-blue-400 text-white rounded-lg hover:from-blue-600 hover:to-blue-500 transition duration-200 shadow-lg"
+                    >
+                      {submitButtonText}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={toggleFormVisibility}
-                    className="px-5 py-3 bg-gradient-to-r from-gray-600 to-gray-500 text-white rounded-lg hover:from-gray-700 hover:to-gray-600 transition duration-300 shadow-lg"
+                    className="px-5 py-3 min-w-[47%] bg-gradient-to-r from-gray-600 to-gray-500 text-white rounded-lg hover:from-gray-700 hover:to-gray-600 transition duration-300 shadow-lg"
                   >
                     Go back to Map
                   </button>
+                  <ToastContainer />
                 </div>
               </form>
             </div>
