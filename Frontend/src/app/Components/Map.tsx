@@ -132,7 +132,7 @@ const MapComponent: React.FC = () => {
   return (
     <div>
       <div id="map" className="h-screen w-full" />
-      <SearchPilots />
+      <SearchPilots setPilots={setPilots} />
     </div>
   );
 };

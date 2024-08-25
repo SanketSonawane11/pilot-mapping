@@ -13,9 +13,13 @@ interface Pilot {
   coordinates: [number, number];
 }
 
-export default function SearchPilots() {
+interface SearchPilotProps {
+  setPilots: (pilots: Pilot[]) => void;
+}
+
+export default function SearchPilots({ setPilots }: SearchPilotProps) {
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [matchedPilots, setMatchedPilots] = useState<Pilot[]>([]);
+  // const [matchedPilots, setMatchedPilots] = useState<Pilot[]>([]);
   const [longitude, setLongitude] = useState<number | undefined>();
   const [latitude, setLatitude] = useState<number | undefined>();
   const [experience, setExperience] = useState<number | undefined>();
@@ -55,7 +59,7 @@ export default function SearchPilots() {
         setRange(undefined);
         setIsFormVisible(false);
         console.log(response.data);
-        setMatchedPilots(response.data);
+        setPilots(response.data);
       } else {
         navigator.geolocation.getCurrentPosition(
           (position) => {
