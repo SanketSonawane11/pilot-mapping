@@ -6,7 +6,7 @@ require('dotenv').config();
 const cors = require('cors');
 
 const corsOptions = {
-    origin: 'https://pilot-mapping.vercel.app/',
+    origin: 'https://pilot-mapping.vercel.app',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 };
